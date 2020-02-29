@@ -1,9 +1,10 @@
 import json
 import logging
 from os import path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Callable
 
 import requests
+from requests.exceptions import HTTPError
 
 from oltk.const import AUTHORITY, CONFIG_PATH, GRAPH_ENDPOINT, NOT_FOUND, SCOPES
 
@@ -78,3 +79,19 @@ def ingest(
         else:
             logger.error(f"リクエストは無効です:{status=}")
             response.raise_for_status()
+
+
+def retry_when_invalid(config_path: str, func: Callable, *args, **kwargs) -> Any:
+    """HTTPErrorが返ってきたら、tokenを再発行して、関数を再実行
+    """
+    with open(config_path) as fh:
+        access_token = json.load(fh)["access_token"]
+
+    try:
+        return func(access_token, *args, **kwargs)
+    except HTTPError as e:
+        logger.warning(e)
+        # 再度実行
+        access_token = refresh_token(config_path)
+        return func(access_token, *args, **kwargs)
+
