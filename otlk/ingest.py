@@ -1,6 +1,5 @@
 import json
 import logging
-from functools import lru_cache
 from os import path
 from typing import Any, Callable, Dict, Optional
 
@@ -46,14 +45,13 @@ def refresh_token(config_path: str) -> Optional[str]:
         response.raise_for_status()
 
 
-@lru_cache()
 def ingest(
     token: str,
     endpoint: str,
     method: str = "GET",
     time_zone: str = "Asia/Tokyo",
-    params: Dict[Any, Any] = None,
-    data: Dict[Any, Any] = None,
+    params: Dict[Any, Any] = {},
+    data: Dict[Any, Any] = {},
 ) -> Optional[Dict[Any, Any]]:
     """情報を取得する
     """
@@ -83,16 +81,16 @@ def ingest(
             response.raise_for_status()
 
 
-def retry_when_invalid(config_path: str, func: Callable, *args, **kwargs) -> Any:
+def retry_when_invalid(config_path: str, func: Callable) -> Any:
     """HTTPErrorが返ってきたら、tokenを再発行して、関数を再実行
     """
     with open(config_path) as fh:
         access_token = json.load(fh)["access_token"]
 
     try:
-        return func(access_token, *args, **kwargs)
+        return func(access_token=access_token)
     except HTTPError as e:
         logger.warning(e)
         # 再度実行
         access_token = refresh_token(config_path)
-        return func(access_token, *args, **kwargs)
+        return func(access_token=access_token)
