@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "outlook-cli"
+name = "oltk"
 version = "0.1.0"
 description = "転職ドラフト解析用のcliツール"
 authors = ["Hiroaki Hasegawa <hasepappa@gmail.com>"]
