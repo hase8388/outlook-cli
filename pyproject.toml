@@ -13,6 +13,7 @@ fasttext = "^0.9.1"
 tqdm = "^4.42.0"
 python-dateutil = "^2.8.1"
 click = "^7.0"
+numpy = "^1.18.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.3.4"
@@ -29,9 +30,9 @@ adjustText = "^0.7.3"
 tabulate = "^0.8.6"
 isort = "^4.3.21"
 
+[tool.poetry.scripts]
+oltk="oltk.main:main"
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
 
-[tool.poetry.scripts]
-oltk="oltk.main:main"
