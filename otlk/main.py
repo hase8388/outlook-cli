@@ -3,17 +3,12 @@ from os import makedirs, path
 
 import click
 
-from oltk.const import CONFIG_PATH
+from otlk.const import CONFIG_PATH
+from otlk.model import User
 
 
 def prompt_password(message: str, default: str = "") -> str:
     """ユーザーと対話的にパスワード入力
-    :param message: [description]
-    :type message: str
-    :param default: [description], defaults to ""
-    :type default: str, optional
-    :return: [description]
-    :rtype: str
     """
 
     input = click.prompt(
@@ -23,11 +18,11 @@ def prompt_password(message: str, default: str = "") -> str:
 
 
 @click.group()
-def oltk():
+def otlk():
     pass
 
 
-@oltk.command()
+@otlk.command()
 def init():
     """認証情報の初期化
     """
@@ -46,8 +41,24 @@ def init():
         json.dump(config_dict, fh)
 
 
+@otlk.command()
+def me():
+    """自身のユーザー情報を表示します
+    """
+    display_cols = [
+        "id",
+        "displayName",
+        "mail",
+        "mobilePhone",
+        "officeLocation",
+        "mobilePhone",
+    ]
+    me = User().as_series().loc[display_cols]
+    click.echo(me.to_markdown())
+
+
 def main():
-    oltk()
+    otlk()
 
 
 if __name__ == "__main__":

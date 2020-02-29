@@ -1009,7 +1009,7 @@ lint = ["flake8", "mypy", "docutils-stubs"]
 test = ["pytest"]
 
 [[package]]
-category = "dev"
+category = "main"
 description = "Pretty-print tabular data"
 name = "tabulate"
 optional = false
@@ -1124,7 +1124,7 @@ python-versions = "*"
 version = "0.5.1"
 
 [metadata]
-content-hash = "4650251270f23049ea6809b7cdf5451312e00eb1ecf163de6fddfda39b99ca30"
+content-hash = "428e518ef9d488d419a507e8e24fcd6b9b949f55448bf80deb570aa52e4ecf19"
 python-versions = "^3.8"
 
 [metadata.files]

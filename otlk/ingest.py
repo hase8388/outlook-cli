@@ -1,14 +1,15 @@
 import json
 import logging
+from functools import lru_cache
 from os import path
-from typing import Any, Dict, Optional, Callable
+from typing import Any, Callable, Dict, Optional
 
 import requests
 from requests.exceptions import HTTPError
 
-from oltk.const import AUTHORITY, CONFIG_PATH, GRAPH_ENDPOINT, NOT_FOUND, SCOPES
+from otlk.const import AUTHORITY, CONFIG_PATH, GRAPH_ENDPOINT, NOT_FOUND, SCOPES
 
-logger = logging.Logger("oltk.ingest")
+logger = logging.Logger("otlk.ingest")
 
 
 def refresh_token(config_path: str) -> Optional[str]:
@@ -45,6 +46,7 @@ def refresh_token(config_path: str) -> Optional[str]:
         response.raise_for_status()
 
 
+@lru_cache()
 def ingest(
     token: str,
     endpoint: str,
@@ -70,7 +72,7 @@ def ingest(
         logger.error(f"{method=}は対応していない形式です")
         raise RuntimeError()
     if response.ok:
-        return response.json()["value"]
+        return response.json()
     else:
         status = response.status_code
         if status == NOT_FOUND:
@@ -94,4 +96,3 @@ def retry_when_invalid(config_path: str, func: Callable, *args, **kwargs) -> Any
         # 再度実行
         access_token = refresh_token(config_path)
         return func(access_token, *args, **kwargs)
-
