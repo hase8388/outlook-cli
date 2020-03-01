@@ -1,12 +1,11 @@
-import json
-from os import makedirs, path
+from datetime import datetime, timedelta
 
 import click
-from requests.exceptions import HTTPError
+from pandas import to_datetime
 
-from otlk.const import CONFIG_PATH
+from otlk.const import TIME_FORMAT, TODAY
 from otlk.ingest import logger
-from otlk.model import People, User
+from otlk.model import Event, People, User
 
 
 @click.group()
@@ -70,6 +69,36 @@ def people(domain: str, format: str):
         click.echo(data.to_csv(index=True))
     else:
         logger.error("想定していない形式です")
+
+
+@otlk.command()
+@click.option("-a", "--address", default="me", type=str)
+@click.option("-s", "--start", default=TODAY.strftime(TIME_FORMAT), type=str)
+@click.option(
+    "-e", "--end", default=(TODAY + timedelta(days=1)).strftime(TIME_FORMAT), type=str
+)
+@click.option("-d", "--is_detail", default=False, is_flag=True)
+def event(address: str, start: str, end: str, is_detail: bool):
+    """対象ユーザーのイベントを取得
+    
+    :param address: 対象ユーザーのアドレス
+    :type address: str
+    :param start: 対象時間(から)["%Y/%m/%d/ %H:%M"]
+    :type start: から
+    :param end: 対象時間(まで)["%Y/%m/%d/ %H:%M"]
+    :type end: str
+    :param is_detail: 詳細まで出力するか
+    :type is_detail: book
+    """
+    event = Event(
+        user_id=address,
+        start_datetime=to_datetime(start),
+        end_datetime=to_datetime(end),
+    )
+    summary_col = ["subject", "locations", "start.dateTime", "end.dateTime"]
+    data = event.as_dataframe()
+    data = data if is_detail else data.loc[:, summary_col]
+    click.echo((data.to_markdown()))
 
 
 def main():

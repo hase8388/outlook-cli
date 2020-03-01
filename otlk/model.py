@@ -109,6 +109,8 @@ class Event(BaseModel):
             "organizer.emailAddress.name",
         ]
         data = json_normalize(self.value["value"]).loc[:, columns]
+        # キャンセル済みは削除
+        data = data[~data["isCancelled"]].drop("isCancelled", axis=1)
         # 見やすいように整形
         data["start.dateTime"] = to_datetime(data["start.dateTime"])
         data["end.dateTime"] = to_datetime(data["end.dateTime"])
@@ -121,4 +123,3 @@ class Event(BaseModel):
 
         data = data.sort_values("start.dateTime", ignore_index=True)
         return data
-
