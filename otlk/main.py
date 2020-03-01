@@ -27,7 +27,7 @@ def _me():
     display_cols = [
         "id",
         "displayName",
-        "mail",
+        "address",
         "mobilePhone",
         "officeLocation",
         "mobilePhone",
@@ -55,13 +55,13 @@ def me():
 def people(domain: str, format: str):
     """ユーザー一覧をを表示
     """
-    display_cols = ["displayName", "userPrincipalName", "companyName"]
+    display_cols = ["displayName", "address", "companyName"]
     people = People()
     data = people.as_dataframe().loc[:, display_cols]
     # フィルタリング
     if domain:
-        principals = data["userPrincipalName"].astype(str)
-        data = data[principals.str.endswith(domain)]
+        address = data["address"].astype(str)
+        data = data[address.str.endswith(domain)]
 
     if format == "markdown":
         click.echo(data.to_markdown())

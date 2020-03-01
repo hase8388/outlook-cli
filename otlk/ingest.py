@@ -6,7 +6,7 @@ from typing import Any, Callable, Dict, Optional
 import requests
 from requests.exceptions import HTTPError
 
-from otlk.const import AUTHORITY, CONFIG_PATH, GRAPH_ENDPOINT, NOT_FOUND, SCOPES
+from otlk.const import AUTHORITY, CREDENTIAL_PATH, GRAPH_ENDPOINT, NOT_FOUND, SCOPES
 
 logger = logging.Logger("otlk.ingest")
 
@@ -20,7 +20,7 @@ def refresh_token(config_path: str) -> Optional[str]:
     """
 
     url = path.join(AUTHORITY, "common/oauth2/v2.0/token")
-    with open(CONFIG_PATH) as fh:
+    with open(CREDENTIAL_PATH) as fh:
         credentials = json.load(fh)
 
     data = {

@@ -5,7 +5,7 @@ from typing import Any, ClassVar, Dict
 
 from pandas import DataFrame, Series, json_normalize, to_datetime
 
-from otlk.const import CONFIG_PATH, UNLIMITED_NUM
+from otlk.const import CREDENTIAL_PATH, UNLIMITED_NUM
 from otlk.ingest import ingest, retry_when_invalid
 
 
@@ -38,13 +38,14 @@ class User(BaseModel):
     @property
     def value(self) -> Dict:
         return retry_when_invalid(
-            CONFIG_PATH,
+            CREDENTIAL_PATH,
             lambda access_token: ingest(access_token, endpoint=self.endpoint),
         )
 
     def as_series(self) -> Series:
         data = Series(self.as_dict())
         data.name = self.user_id
+        data = data.rename({"mail": "address"})
         return data
 
 
@@ -58,7 +59,7 @@ class People(BaseModel):
         # デフォルトだと10件のみなので、全て取得する
         params = {"top": UNLIMITED_NUM}
         return retry_when_invalid(
-            CONFIG_PATH,
+            CREDENTIAL_PATH,
             lambda access_token: ingest(
                 access_token, endpoint=self.endpoint, params=params
             ),
@@ -66,8 +67,8 @@ class People(BaseModel):
 
     def as_dataframe(self) -> DataFrame:
         data = DataFrame(self.value["value"])
-        data = data.sort_values("surname")
-        data = data.set_index("id")
+        data = data.rename(columns={"userPrincipalName": "address"})
+        data = data.sort_values("address", ignore_index=True)
         return data
 
 
@@ -87,7 +88,7 @@ class Event(BaseModel):
             "endDateTime": self.end_datetime.isoformat(),
         }
         return retry_when_invalid(
-            CONFIG_PATH,
+            CREDENTIAL_PATH,
             lambda access_token: ingest(
                 access_token, endpoint=self.endpoint, params=params
             ),
