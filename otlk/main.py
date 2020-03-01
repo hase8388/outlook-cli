@@ -59,7 +59,7 @@ def me():
 
 
 @otlk.command()
-@click.option("-d", "--domain", type=str, help="domein名でフィルタ")
+@click.option("-d", "--domain", type=str, help="domain名でフィルタ")
 @click.option(
     "-f",
     "--format",
