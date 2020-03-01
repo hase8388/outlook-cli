@@ -1,7 +1,8 @@
 from os import environ, path
 
 HOME_PATH = environ["HOME"]
-CONFIG_PATH = path.join(HOME_PATH, ".config", "otlk", "config.json")
+DEFAULT_CONFIG_PATH = path.join(HOME_PATH, ".config", "otlk", "config.json")
+CONFIG_PATH = path if (path := environ["OTLK_CONFIG"]) else DEFAULT_CONFIG_PATH
 
 AUTHORITY = "https://login.microsoftonline.com"
 GRAPH_ENDPOINT = "https://graph.microsoft.com/v1.0/"
