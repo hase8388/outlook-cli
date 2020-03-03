@@ -45,7 +45,6 @@ class User(BaseModel):
     def as_series(self) -> Series:
         data = Series(self.as_dict())
         data.name = self.user_id
-        data = data.rename({"mail": "address"})
         return data
 
 
@@ -67,8 +66,9 @@ class People(BaseModel):
 
     def as_dataframe(self) -> DataFrame:
         data = DataFrame(self.value["value"])
-        data = data.rename(columns={"userPrincipalName": "address"})
-        data = data.sort_values("address", ignore_index=True)
+        # アドレスはuser_idに統一
+        data = data.rename(columns={"userPrincipalName": "user_id"})
+        data = data.sort_values("user_id", ignore_index=True)
         return data
 
 

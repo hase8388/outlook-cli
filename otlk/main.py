@@ -27,7 +27,7 @@ def _me():
     display_cols = [
         "id",
         "displayName",
-        "address",
+        "user_id",
         "mobilePhone",
         "officeLocation",
         "mobilePhone",
@@ -44,7 +44,7 @@ def me():
 
 
 @otlk.command()
-@click.option("-d", "--domain", type=str, help="domain名でフィルタ")
+@click.option("-d", "--domain", type=str, help="user_idのdomain名でフィルタ")
 @click.option(
     "-f",
     "--format",
@@ -55,13 +55,13 @@ def me():
 def people(domain: str, format: str):
     """ユーザー一覧をを表示
     """
-    display_cols = ["displayName", "address", "companyName"]
+    display_cols = ["displayName", "user_id", "companyName"]
     people = People()
     data = people.as_dataframe().loc[:, display_cols]
     # フィルタリング
     if domain:
-        address = data["address"].astype(str)
-        data = data[address.str.endswith(domain)]
+        user_ids = data["user_id"].astype(str)
+        data = data[user_ids.str.endswith(domain)]
 
     if format == "markdown":
         click.echo(data.to_markdown())
@@ -72,26 +72,22 @@ def people(domain: str, format: str):
 
 
 @otlk.command()
-@click.option("-a", "--address", default="me", type=str)
+@click.option("-u", "--user_id", default="me", type=str)
 @click.option("-s", "--start", default=TODAY.strftime(TIME_FORMAT), type=str)
 @click.option(
     "-e", "--end", default=(TODAY + timedelta(days=1)).strftime(TIME_FORMAT), type=str
 )
 @click.option("-d", "--is_detail", default=False, is_flag=True)
-def event(address: str, start: str, end: str, is_detail: bool):
+def event(user_id: str, start: str, end: str, is_detail: bool):
     """対象ユーザーのイベントを取得
     
-    :param address: 対象ユーザーのアドレス
-    :type address: str
+    :param user_id: 対象ユーザーid(アドレス)
     :param start: 対象時間(から)["%Y/%m/%d/ %H:%M"]
-    :type start: から
     :param end: 対象時間(まで)["%Y/%m/%d/ %H:%M"]
-    :type end: str
     :param is_detail: 詳細まで出力するか
-    :type is_detail: book
     """
     event = Event(
-        user_id=address,
+        user_id=user_id,
         start_datetime=to_datetime(start),
         end_datetime=to_datetime(end),
     )
