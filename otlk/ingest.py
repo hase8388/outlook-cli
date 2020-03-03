@@ -8,7 +8,7 @@ from requests.exceptions import HTTPError
 
 from otlk.const import AUTHORITY, CREDENTIAL_PATH, GRAPH_ENDPOINT, NOT_FOUND, SCOPES
 
-logger = logging.Logger("otlk.ingest")
+logger = logging.Logger(__name__)
 
 
 def refresh_token(config_path: str) -> Optional[str]:

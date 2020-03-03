@@ -2,7 +2,8 @@ from datetime import datetime
 from os import environ, getenv, path
 
 HOME_PATH = environ["HOME"]
-DEFAULT_CREDENTIAL_PATH = path.join(HOME_PATH, ".config", "otlk", "credential.json")
+CONFIG_DIR = path.join(HOME_PATH, ".config", "otlk")
+DEFAULT_CREDENTIAL_PATH = path.join(CONFIG_DIR, "credential.json")
 CREDENTIAL_PATH = (
     path if (path := getenv("OTLK_CREDENTIAL")) else DEFAULT_CREDENTIAL_PATH
 )

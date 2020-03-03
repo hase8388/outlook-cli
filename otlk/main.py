@@ -1,11 +1,15 @@
+import logging
 from datetime import datetime, timedelta
+from os import makedirs
+from os.path import dirname, join
 
 import click
 from pandas import to_datetime
 
-from otlk.const import TIME_FORMAT, TODAY
-from otlk.ingest import logger
+from otlk.const import CONFIG_DIR, DEFAULT_CREDENTIAL_PATH, TIME_FORMAT, TODAY
 from otlk.model import Event, People, User
+
+logger = logging.Logger(__name__)
 
 
 @click.group()
@@ -102,4 +106,8 @@ def main():
 
 
 if __name__ == "__main__":
+    makedirs(CONFIG_DIR, exist_ok=True)
+    logger.setLevel(logging.INFO)
+    fh = logging.FileHandler(join(CONFIG_DIR, "otlk.log"))
+    logger.addHandler(fh)
     main()

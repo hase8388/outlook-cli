@@ -20,13 +20,17 @@ class BaseModel:
 
         return path.join(user_id_, self.base_endpoint)
 
+    def request(self) -> Dict:
+        raise NotImplementedError
+
     @property
     def value(self) -> Dict:
-        raise NotImplementedError
+        # 正常に値を取得できた場合、valueの中にデータが入っているので、取り出す
+        return self.request()["value"]
 
     def as_dict(self) -> Dict:
         dict_ = asdict(self)
-        dict_.update(self.value)
+        dict_.update(self.request())
         return dict_
 
 
@@ -35,8 +39,7 @@ class User(BaseModel):
     user_id: str = "me"
     base_endpoint: ClassVar[str] = ""
 
-    @property
-    def value(self) -> Dict:
+    def request(self) -> Dict:
         return retry_when_invalid(
             CREDENTIAL_PATH,
             lambda access_token: ingest(access_token, endpoint=self.endpoint),
@@ -53,8 +56,7 @@ class People(BaseModel):
     user_id: str = "me"
     base_endpoint: ClassVar[str] = "people"
 
-    @property
-    def value(self) -> Dict:
+    def request(self) -> Dict:
         # デフォルトだと10件のみなので、全て取得する
         params = {"top": UNLIMITED_NUM}
         return retry_when_invalid(
@@ -65,7 +67,7 @@ class People(BaseModel):
         )
 
     def as_dataframe(self) -> DataFrame:
-        data = DataFrame(self.value["value"])
+        data = DataFrame(self.value)
         # アドレスはuser_idに統一
         data = data.rename(columns={"userPrincipalName": "user_id"})
         data = data.sort_values("user_id", ignore_index=True)
@@ -79,8 +81,7 @@ class Event(BaseModel):
     end_datetime: datetime
     base_endpoint: ClassVar[str] = "calendarView"
 
-    @property
-    def value(self):
+    def request(self):
         # デフォルトだと10件のみなので、全て取得する
         params = {
             "top": UNLIMITED_NUM,
@@ -109,7 +110,7 @@ class Event(BaseModel):
             "end.dateTime",
             "organizer.emailAddress.name",
         ]
-        data = json_normalize(self.value["value"]).loc[:, columns]
+        data = json_normalize(self.value).loc[:, columns]
         # キャンセル済みは削除
         data = data[~data["isCancelled"]].drop("isCancelled", axis=1)
         # 見やすいように整形
