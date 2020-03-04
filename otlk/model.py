@@ -1,18 +1,20 @@
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from os import path
-from typing import Any, ClassVar, Dict
+from typing import ClassVar, Dict, List
 
-from pandas import DataFrame, Series, json_normalize, to_datetime
+import numpy
+from pandas import DataFrame, Series, date_range, json_normalize, to_datetime
 
-from otlk.const import CREDENTIAL_PATH, UNLIMITED_NUM
+from otlk.const import CREDENTIAL_PATH, MINIMAL_TERM, UNLIMITED_NUM
 from otlk.ingest import ingest, retry_when_invalid
+from otlk.util import round_min_dt
 
 
 @dataclass
 class BaseModel:
     user_id: str
-    base_endpoint: ClassVar[str] = ""
+    base_endpoint: ClassVar[str]
 
     @property
     def endpoint(self):
@@ -125,3 +127,72 @@ class Event(BaseModel):
 
         data = data.sort_values("start.dateTime", ignore_index=True)
         return data
+
+
+@dataclass
+class EmptyTerms(BaseModel):
+    user_id: str
+    attendees: List[str]
+    start_datetime: datetime
+    end_datetime: datetime
+    interval_min: int
+    base_endpoint: ClassVar[str] = "calendar/getschedule"
+
+    def __post_init__(self):
+        # 最小取得単位で丸める
+        self.start_datetime = round_min_dt(self.start_datetime, MINIMAL_TERM)
+        self.end_datetime = round_min_dt(self.end_datetime, MINIMAL_TERM)
+
+    def request(self):
+        data = {
+            "schedules": self.attendees,
+            "startTime": {
+                "dateTime": self.start_datetime.isoformat(),
+                "timeZone": "Asia/Tokyo",
+            },
+            "endTime": {
+                "dateTime": self.end_datetime.isoformat(),
+                "timeZone": "Asia/Tokyo",
+            },
+            # 最小取得単位で取得
+            "availabilityViewInterval": MINIMAL_TERM,
+        }
+
+        return retry_when_invalid(
+            CREDENTIAL_PATH,
+            lambda access_token: ingest(
+                access_token, endpoint=self.endpoint, method="POST", data=data
+            ),
+        )
+
+    def as_dataframe(self):
+        value = DataFrame(self.value)
+        # 空いている時間帯にflagを追加
+        data = DataFrame(
+            list(value["availabilityView"].apply(lambda x: list(x)).values)
+        ).T
+        data.columns = value["scheduleId"]
+        data["start_dt"] = date_range(
+            self.start_datetime, self.end_datetime, freq=f"{MINIMAL_TERM}T"
+        )[:-1]
+        data["end_dt"] = data["start_dt"] + timedelta(minutes=MINIMAL_TERM)
+        data["is_empty"] = (
+            numpy.sum(data.loc[:, self.attendees].astype(int), axis=1) == 0
+        )
+
+        # 予定が連続して空いている場合、結合する
+        rows = []
+        start_dts = [self.start_datetime]
+        for _, row in data.iterrows():
+            if row["is_empty"]:
+                start_dts.append(row["start_dt"])
+            elif len(start_dts):
+                rows.append([min(start_dts), row["start_dt"]])
+                start_dts = []
+            else:
+                start_dts = []
+
+        if len(start_dts):
+            rows.append([min(start_dts), max(start_dts)])
+
+        return DataFrame(rows, columns=["from", "to"])

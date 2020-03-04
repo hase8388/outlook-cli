@@ -18,16 +18,6 @@ def otlk():
     pass
 
 
-def prompt_password(input: str, default: str = None) -> str:
-    """ユーザーと対話的にパスワード入力
-    """
-
-    input_ = click.prompt(
-        text=input, hide_input=False, type=str, default=default, show_default=False
-    )
-    return input_
-
-
 def _me():
     display_cols = [
         "id",
