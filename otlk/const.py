@@ -29,5 +29,5 @@ UNLIMITED_NUM = 1500
 TODAY = datetime.now()
 MINIMAL_TERM = 5
 
-TIME_FORMAT = "%Y/%m/%d/ %H:%M"
+TIME_FORMAT = "%Y/%m/%d %H:%M"
 LOG_FORMAT = "%(asctime)s %(levelname)s %(message)s"

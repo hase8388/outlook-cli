@@ -8,7 +8,7 @@ from pandas import to_datetime
 from requests import HTTPError
 
 from otlk.const import CONFIG_DIR, LOG_FORMAT, TIME_FORMAT, TODAY
-from otlk.model import Event, People, User
+from otlk.model import EmptyTerms, Event, People, User
 
 logger = logging.getLogger(__name__)
 
@@ -68,18 +68,24 @@ def people(domain: str, format: str):
 
 @otlk.command()
 @click.option("-u", "--user_id", default="me", type=str)
-@click.option("-s", "--start", default=TODAY.strftime(TIME_FORMAT), type=str)
 @click.option(
-    "-e", "--end", default=(TODAY + timedelta(days=1)).strftime(TIME_FORMAT), type=str
+    "-s",
+    "--start",
+    default=TODAY.strftime(TIME_FORMAT),
+    type=str,
+    help='対象時間(から)["%Y/%m/%d/ %H:%M"]',
+)
+@click.option(
+    "-e",
+    "--end",
+    default=(TODAY + timedelta(days=1)).strftime(TIME_FORMAT),
+    type=str,
+    help='対象時間(まで)["%Y/%m/%d/ %H:%M"]',
 )
 @click.option("-d", "--is_detail", default=False, is_flag=True)
 def event(user_id: str, start: str, end: str, is_detail: bool):
     """対象ユーザーのイベントを取得
     
-    :param user_id: 対象ユーザーid(アドレス)
-    :param start: 対象時間(から)["%Y/%m/%d/ %H:%M"]
-    :param end: 対象時間(まで)["%Y/%m/%d/ %H:%M"]
-    :param is_detail: 詳細まで出力するか
     """
     event = Event(
         user_id=user_id,
@@ -90,6 +96,49 @@ def event(user_id: str, start: str, end: str, is_detail: bool):
     data = event.as_dataframe()
     data = data if is_detail else data.loc[:, summary_col]
     click.echo((data.to_markdown()))
+
+
+@otlk.command()
+@click.option(
+    "-u",
+    "--users",
+    type=str,
+    help="空き時間を確認したいuser(複数可)[xxx, yyy, zzz]",
+    required=True,
+)
+@click.option(
+    "-s",
+    "--start",
+    default=TODAY.strftime(TIME_FORMAT),
+    type=str,
+    help='対象時間(から)["%Y/%m/%d/ %H:%M"]',
+)
+@click.option(
+    "-e",
+    "--end",
+    default=(TODAY + timedelta(days=3)).strftime(TIME_FORMAT),
+    type=str,
+    help='対象時間(まで)["%Y/%m/%d/ %H:%M"]',
+)
+@click.option("-m", "--minutes", default=30, type=int, help="確保したい空き時間[m]")
+def empty(users, start, end, minutes):
+    """対象ユーザーの共通した空き時間を取得
+    
+    """
+    start = to_datetime(start)
+    end = to_datetime(end)
+    attendess = users.split(",")
+    data = EmptyTerms(
+        "me",
+        attendees=attendess,
+        start_datetime=start,
+        end_datetime=end,
+        interval_min=minutes,
+    ).as_dataframe()
+    # to_mark_down時にunixtimeに変換されてしまうため、strに変換
+    data["from"] = data["from"].dt.strftime(TIME_FORMAT)
+    data["to"] = data["to"].dt.strftime(TIME_FORMAT)
+    click.echo(data.to_markdown())
 
 
 def main():
