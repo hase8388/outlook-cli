@@ -1,15 +1,14 @@
 import logging
 from datetime import datetime, timedelta
-from logging import logThreads
 from os import makedirs
 from os.path import dirname, join
 
 import click
 from pandas import to_datetime
+from requests import HTTPError
 
 from otlk.const import CONFIG_DIR, LOG_FORMAT, TIME_FORMAT, TODAY
 from otlk.model import Event, People, User
-from otlk.util import convert_std_error
 
 logger = logging.getLogger(__name__)
 
@@ -103,17 +102,21 @@ def event(user_id: str, start: str, end: str, is_detail: bool):
     click.echo((data.to_markdown()))
 
 
-@convert_std_error
 def main():
-    otlk()
-
-
-if __name__ == "__main__":
-
     makedirs(CONFIG_DIR, exist_ok=True)
     fh = logging.FileHandler(join(CONFIG_DIR, "otlk.log"))
     logging.basicConfig(format=LOG_FORMAT, handlers=[fh], level=logging.INFO)
 
-    logger = logging.getLogger("otlk")
+    try:
+        otlk()
+    except KeyError as e:
+        logger.error(e, exc_info=True)
+        click.echo("指定された情報はありませんでした", err=True)
 
-main()
+    except HTTPError as e:
+        logger.error(e, exc_info=True)
+        click.echo("情報の取得に失敗しました", err=True)
+
+
+if __name__ == "__main__":
+    main()
