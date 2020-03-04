@@ -28,3 +28,5 @@ UNLIMITED_NUM = 1500
 
 TODAY = datetime.now()
 TIME_FORMAT = "%Y/%m/%d/ %H:%M"
+
+LOG_FORMAT = "%(asctime)s %(levelname)s %(message)s"

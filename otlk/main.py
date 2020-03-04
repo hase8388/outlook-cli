@@ -1,15 +1,17 @@
 import logging
 from datetime import datetime, timedelta
+from logging import logThreads
 from os import makedirs
 from os.path import dirname, join
 
 import click
 from pandas import to_datetime
 
-from otlk.const import CONFIG_DIR, DEFAULT_CREDENTIAL_PATH, TIME_FORMAT, TODAY
+from otlk.const import CONFIG_DIR, LOG_FORMAT, TIME_FORMAT, TODAY
 from otlk.model import Event, People, User
+from otlk.util import convert_std_error
 
-logger = logging.Logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 @click.group()
@@ -101,13 +103,17 @@ def event(user_id: str, start: str, end: str, is_detail: bool):
     click.echo((data.to_markdown()))
 
 
+@convert_std_error
 def main():
     otlk()
 
 
 if __name__ == "__main__":
+
     makedirs(CONFIG_DIR, exist_ok=True)
-    logger.setLevel(logging.INFO)
     fh = logging.FileHandler(join(CONFIG_DIR, "otlk.log"))
-    logger.addHandler(fh)
-    main()
+    logging.basicConfig(format=LOG_FORMAT, handlers=[fh], level=logging.INFO)
+
+    logger = logging.getLogger("otlk")
+
+main()

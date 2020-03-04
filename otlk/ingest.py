@@ -8,7 +8,7 @@ from requests.exceptions import HTTPError
 
 from otlk.const import AUTHORITY, CREDENTIAL_PATH, GRAPH_ENDPOINT, NOT_FOUND, SCOPES
 
-logger = logging.Logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def refresh_token(config_path: str) -> Optional[str]:
@@ -41,7 +41,6 @@ def refresh_token(config_path: str) -> Optional[str]:
         return response["access_token"]
     else:
         logger.error(f"Access Tokenを正常に再発行できませんでした")
-        print(response.text)
         response.raise_for_status()
 
 
