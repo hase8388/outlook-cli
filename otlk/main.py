@@ -7,7 +7,7 @@ import click
 from pandas import to_datetime
 from requests import HTTPError
 
-from otlk.const import CONFIG_DIR, LOG_FORMAT, TIME_FORMAT, TODAY
+from otlk.const import CONFIG_DIR, LOG_FORMAT, NOW, TIME_FORMAT, TODAY
 from otlk.model import EmptyTerms, Event, People, User
 
 logger = logging.getLogger(__name__)
@@ -33,7 +33,7 @@ def _me():
 
 @otlk.command()
 def me():
-    """自身のユーザー情報を表示します
+    """自身のユーザー情報を表示
     """
     _me()
 
@@ -73,14 +73,14 @@ def people(domain: str, format: str):
     "--start",
     default=TODAY.strftime(TIME_FORMAT),
     type=str,
-    help='対象時間(から)["%Y/%m/%d/ %H:%M"]',
+    help=f"対象時間(から)[{TIME_FORMAT}]",
 )
 @click.option(
     "-e",
     "--end",
     default=(TODAY + timedelta(days=1)).strftime(TIME_FORMAT),
     type=str,
-    help='対象時間(まで)["%Y/%m/%d/ %H:%M"]',
+    help=f"対象時間(まで)[{TIME_FORMAT}]",
 )
 @click.option("-d", "--is_detail", default=False, is_flag=True)
 def event(user_id: str, start: str, end: str, is_detail: bool):
@@ -99,38 +99,31 @@ def event(user_id: str, start: str, end: str, is_detail: bool):
 
 
 @otlk.command()
-@click.option(
-    "-u",
-    "--users",
-    type=str,
-    help="空き時間を確認したいuser(複数可)[xxx, yyy, zzz]",
-    required=True,
-)
+@click.argument("user_ids", type=str, required=True, nargs=-1)
 @click.option(
     "-s",
     "--start",
-    default=TODAY.strftime(TIME_FORMAT),
+    default=NOW.strftime(TIME_FORMAT),
     type=str,
-    help='対象時間(から)["%Y/%m/%d/ %H:%M"]',
+    help=f"対象時間(から)[{TIME_FORMAT}]",
 )
 @click.option(
     "-e",
     "--end",
-    default=(TODAY + timedelta(days=3)).strftime(TIME_FORMAT),
+    default=(NOW + timedelta(days=3)).strftime(TIME_FORMAT),
     type=str,
-    help='対象時間(まで)["%Y/%m/%d/ %H:%M"]',
+    help=f"対象時間(まで)[{TIME_FORMAT}]",
 )
 @click.option("-m", "--minutes", default=30, type=int, help="確保したい空き時間[m]")
-def empty(users, start, end, minutes):
-    """対象ユーザーの共通した空き時間を取得
+def empty(user_ids, start, end, minutes):
+    """対象ユーザー同士での共通した空き時間を取得
     
     """
     start = to_datetime(start)
     end = to_datetime(end)
-    attendess = users.split(",")
     data = EmptyTerms(
         "me",
-        attendees=attendess,
+        attendees=user_ids,
         start_datetime=start,
         end_datetime=end,
         interval_min=minutes,

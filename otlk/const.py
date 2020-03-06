@@ -26,7 +26,8 @@ NOT_FOUND = 404
 
 UNLIMITED_NUM = 1500
 
-TODAY = datetime.now()
+TODAY = datetime.today().date()
+NOW = datetime.now()
 MINIMAL_TERM = 5
 
 TIME_FORMAT = "%Y/%m/%d %H:%M"

@@ -182,7 +182,7 @@ class EmptyTerms(BaseModel):
 
         # 予定が連続して空いている場合、結合する
         rows = []
-        start_dts = [self.start_datetime]
+        start_dts = []
         for _, row in data.iterrows():
             if row["is_empty"]:
                 start_dts.append(row["start_dt"])
