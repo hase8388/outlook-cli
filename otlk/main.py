@@ -1,16 +1,28 @@
 import logging
 from datetime import datetime, timedelta
 from os import makedirs
-from os.path import dirname, join
+from os.path import dirname, exists, join
 
 import click
 from pandas import to_datetime
 from requests import HTTPError
+from yaml import safe_load
 
-from otlk.const import CONFIG_DIR, LOG_FORMAT, NOW, TIME_FORMAT, TODAY
+from otlk.const import CONFIG_DIR, CONFIG_PATH, LOG_FORMAT, NOW, TIME_FORMAT, TODAY
 from otlk.model import EmptyTerms, Event, People, User
 
 logger = logging.getLogger(__name__)
+
+config = {}
+if exists(CONFIG_PATH):
+    with open(CONFIG_PATH) as fh:
+        config = config if (config := safe_load(fh)) else {}
+
+
+def _add_domain(user_id: str):
+    domain = domain if (domain := config.get("domain")) else ""
+    user_id = user_id if ("@" in user_id or user_id == "me") else user_id + "@" + domain
+    return user_id
 
 
 @click.group()
@@ -67,7 +79,7 @@ def people(domain: str, format: str):
 
 
 @otlk.command()
-@click.option("-u", "--user_id", default="me", type=str)
+@click.argument("user_id", default="me", type=str)
 @click.option(
     "-s",
     "--start",
@@ -88,7 +100,7 @@ def event(user_id: str, start: str, end: str, is_detail: bool):
     
     """
     event = Event(
-        user_id=user_id,
+        user_id=_add_domain(user_id),
         start_datetime=to_datetime(start),
         end_datetime=to_datetime(end),
     )
@@ -119,6 +131,7 @@ def empty(user_ids, start, end, minutes):
     """対象ユーザー同士での共通した空き時間を取得
     
     """
+    user_ids = [_add_domain(user_id) for user_id in user_ids]
     start = to_datetime(start)
     end = to_datetime(end)
     data = EmptyTerms(

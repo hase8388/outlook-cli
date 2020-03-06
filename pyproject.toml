@@ -13,6 +13,7 @@ numpy = "^1.18.1"
 tqdm = "^4.42.0"
 click = "^7.0"
 requests = "^2.23.0"
+pyyaml = "^5.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.3.4"

@@ -3,6 +3,7 @@ from os import environ, getenv, path
 
 HOME_PATH = environ["HOME"]
 CONFIG_DIR = path.join(HOME_PATH, ".config", "otlk")
+CONFIG_PATH = path.join(CONFIG_DIR, "config.yaml")
 DEFAULT_CREDENTIAL_PATH = path.join(CONFIG_DIR, "credential.json")
 CREDENTIAL_PATH = (
     path if (path := getenv("OTLK_CREDENTIAL")) is not None else DEFAULT_CREDENTIAL_PATH
