@@ -1,9 +1,10 @@
 [tool.poetry]
 name = "otlk"
-version = "0.3.0"
-description = "転職ドラフト解析用のcliツール"
+version = "0.3.1"
+description = "outlookの情報を取得するためのCLIツール"
 authors = ["Hiroaki Hasegawa <hasepappa@gmail.com>"]
 
+readme = "README.md"
 
 
 [tool.poetry.dependencies]
@@ -14,6 +15,7 @@ tqdm = "^4.42.0"
 click = "^7.0"
 requests = "^2.23.0"
 pyyaml = "^5.3"
+tabulate = "^0.8.6"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.3.4"
